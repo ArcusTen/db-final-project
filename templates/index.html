@@ -15,11 +15,11 @@
         <span>Alumni Management System</span>
     </div>
     <nav class="nav-links">
-        <a href="website.html">Home</a>
-        <a href="about.html">About</a>
-        <a href="events.html">Events</a>
-        <a href="contact.html">Contact</a>
-        <a href="signin.html" class="cta-button">Sign In</a>
+        <a href="/">Home</a>
+        <a href="/about">About</a>
+        <a href="/events">Events</a>
+        <a href="/contact">Contact</a>
+        <a href="/signin" class="cta-button">Sign In</a>
     </nav>
 </header>
 
@@ -46,7 +46,7 @@
         <div id="notification" class="notification" style="display:none;"></div>
         <div class="switch-auth">
             <p>Already have an account?</p>
-            <a href="signin.html" class="sign-in-link">Sign In</a>
+            <a href="/signin" class="sign-in-link">Sign In</a>
         </div>
     </div>
     <div class="image-section">
@@ -92,7 +92,7 @@ document.getElementById('signup-form').addEventListener('submit', async function
         notification.textContent = 'User created successfully! Redirecting to sign in...';
         notification.style.background = '#28a745';
         setTimeout(() => {
-            window.location.href = 'signin.html';
+            window.location.href = '/signin';
         }, 1800);
     } else {
         notification.textContent = result.error || 'Sign up failed. Please try again.';
