@@ -244,8 +244,11 @@
 
                 <div id="feedback" class="content-section" style="display: none;">
                     <div class="card">
-                        <div class="card-header">
+                        <div class="card-header d-flex justify-content-between">
                             <h5>Feedback</h5>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFeedbackModal">
+                                <i class="fas fa-plus"></i> Add Feedback
+                            </button>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
@@ -255,6 +258,7 @@
                                             <th>Alumni</th>
                                             <th>Message</th>
                                             <th>Date</th>
+                                            <th>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody></tbody>
@@ -467,6 +471,48 @@
         </div>
     </div>
 
+    <!-- Add Feedback Modal -->
+    <div class="modal fade" id="addFeedbackModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Submit Feedback</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addFeedbackForm">
+                        <div class="mb-3">
+                            <label class="form-label">Alumni</label>
+                            <select class="form-control" name="alumni_id" id="feedback-alumni-select" required>
+                                <option value="">Select Alumni</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Feedback Message</label>
+                            <textarea class="form-control" name="message" rows="4" required placeholder="Please share your feedback..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Related to</label>
+                            <select class="form-control" name="related_event_or_service">
+                                <option value="">Select Category (Optional)</option>
+                                <option value="Events">Events</option>
+                                <option value="Website">Website</option>
+                                <option value="Communications">Communications</option>
+                                <option value="Services">Alumni Services</option>
+                                <option value="Networking">Networking Opportunities</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="addFeedback()">Submit Feedback</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Navigation
@@ -647,8 +693,21 @@
                             <td>${feedback.full_name || 'Unknown'}</td>
                             <td>${feedback.feedback_message}</td>
                             <td>${feedback.date_submitted || 'N/A'}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary">View</button>
+                                <button class="btn btn-sm btn-outline-danger">Delete</button>
+                            </td>
                         </tr>
                     `).join('');
+                });
+            
+            // Load alumni for dropdown
+            fetch('/api/alumni')
+                .then(response => response.json())
+                .then(data => {
+                    const select = document.getElementById('feedback-alumni-select');
+                    select.innerHTML = '<option value="">Select Alumni</option>' + 
+                        data.map(alum => `<option value="${alum.alumni_id}">${alum.full_name}</option>`).join('');
                 });
         }
 
@@ -807,6 +866,39 @@
             .catch(error => {
                 console.error('Error:', error);
                 alert('An error occurred');
+            });
+        }
+
+        function addFeedback() {
+            const form = document.getElementById('addFeedbackForm');
+            const formData = new FormData(form);
+            
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+
+            fetch('/api/feedback', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.message || result.feedback_id || result.alumni_id) {
+                    alert('Feedback submitted successfully!');
+                    form.reset();
+                    bootstrap.Modal.getInstance(document.getElementById('addFeedbackModal')).hide();
+                    loadFeedback();
+                } else {
+                    alert('Error: ' + (result.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while submitting feedback');
             });
         }
 

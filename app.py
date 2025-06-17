@@ -71,11 +71,16 @@ def make_donation():
 def submit_feedback():
     feedback = request.get_json()
     conn = get_db_connection()
-    conn.execute('INSERT INTO feedback (alumni_id, feedback_message) VALUES (?, ?)',
-                 (feedback['alumni_id'], feedback['message']))
-    conn.commit()
-    conn.close()
-    return jsonify(feedback), 201
+    try:
+        conn.execute('''INSERT INTO feedback (alumni_id, feedback_message, related_event_or_service, date_submitted) 
+                       VALUES (?, ?, ?, date("now"))''',
+                    (feedback['alumni_id'], feedback['message'], feedback.get('related_event_or_service', '')))
+        conn.commit()
+        conn.close()
+        return jsonify({'message': 'Feedback submitted successfully'}), 201
+    except Exception as e:
+        conn.close()
+        return jsonify({'error': str(e)}), 400
 
 @app.route('/api/job_postings', methods=['GET'])
 def get_job_postings():
@@ -222,6 +227,11 @@ def dashboard():
         return redirect('/signin')
     return render_template('dashboard.html')  # You'll need to create this
 
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/signin')
+
 def init_db():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
@@ -281,15 +291,14 @@ def init_db():
             FOREIGN KEY (alumni_id) REFERENCES alumni(alumni_id)
         )
     ''')
-    
-    # Create feedback table
+      # Create feedback table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS feedback (
             feedback_id INTEGER PRIMARY KEY AUTOINCREMENT,
             alumni_id INTEGER,
             feedback_message TEXT,
             related_event_or_service TEXT,
-            date_submitted DATE,
+            date_submitted DATE DEFAULT (date('now')),
             FOREIGN KEY (alumni_id) REFERENCES alumni(alumni_id)
         )
     ''')

@@ -206,11 +206,11 @@
             </div>
             <div class="contact-item">
                 <i class="fas fa-phone"></i>
-                <span>+1 (555) 123-4567</span>
+                <span>+92 1111555555</span>
             </div>
             <div class="contact-item">
                 <i class="fas fa-map-marker-alt"></i>
-                <span>123 University Avenue<br>Alumni Center, Room 205<br>Your City, State 12345</span>
+                <span>Air University <br>E-9, <br>Islamabad</span>
             </div>
             <div class="contact-item">
                 <i class="fas fa-clock"></i>
@@ -218,7 +218,7 @@
             </div>
             <div class="contact-item">
                 <i class="fas fa-globe"></i>
-                <span>www.university.edu/alumni</span>
+                <span>www.au.edu.pk</span>
             </div>
         </div>
         
@@ -300,20 +300,51 @@ document.getElementById('contact-form').addEventListener('submit', async functio
     e.preventDefault();
     
     const notification = document.getElementById('notification');
+    const formData = new FormData(e.target);
+    
+    const data = {
+        name: formData.get('name'),
+        email: formData.get('email'),
+        subject: formData.get('subject'),
+        message: formData.get('message')
+    };
+    
     notification.style.display = 'block';
     notification.style.background = '#667eea';
     notification.textContent = 'Sending message...';
     
-    // Simulate sending message (you would implement actual email sending here)
-    setTimeout(() => {
-        notification.style.background = '#28a745';
-        notification.textContent = 'Message sent successfully! We\'ll get back to you soon.';
-        document.getElementById('contact-form').reset();
+    try {
+        const response = await fetch('/api/contact', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            notification.style.background = '#28a745';
+            notification.textContent = 'Message sent successfully! We\'ll get back to you soon.';
+            document.getElementById('contact-form').reset();
+        } else {
+            notification.style.background = '#dc3545';
+            notification.textContent = result.error || 'Failed to send message. Please try again.';
+        }
         
         setTimeout(() => {
             notification.style.display = 'none';
         }, 3000);
-    }, 1500);
+    } catch (error) {
+        console.error('Error:', error);
+        notification.style.background = '#dc3545';
+        notification.textContent = 'Network error. Please try again.';
+        
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 3000);
+    }
 });
 </script>
 </body>
